@@ -1,4 +1,5 @@
-import { useState, createContext } from 'react'
+import { useState } from 'react'
+import { FiHeart } from 'react-icons/fi'
 import Head from 'next/head'
 // import axios from 'axios'
 import CryptoChartCard from '../components/CryptoChartCard'
@@ -78,12 +79,15 @@ export default function Home() {
       <footer className="flex h-24 w-full items-center justify-center border-t">
         <a
           className="flex items-center justify-center"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          href="https://carlosknopel.dev"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="ml-2 h-4" />
+          <span className="mr-2">Made with</span>
+          <FiHeart size={12} />
+          <span className="ml-2">
+            by <b>Carlos Knopel</b>
+          </span>
         </a>
       </footer>
     </div>
