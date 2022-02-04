@@ -1,29 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FiHeart } from 'react-icons/fi'
+import { FaStar, FaRegStar } from 'react-icons/fa'
 import Head from 'next/head'
-// import axios from 'axios'
 import CryptoChartCard from '../components/CryptoChartCard'
-import coinsList from '../data/cryptos.json'
+import useDebounce from '../hooks/useDebounce'
+import { createClient } from '@supabase/supabase-js'
 import CryptoContext from '../context/CryptoContext'
+import LoadingIcons from 'react-loading-icons'
 
-const cryptos = JSON.stringify(coinsList)
-const cryptosList = JSON.parse(cryptos)
-const cryptosArray = Object.values(cryptosList)
+const supabase = createClient('https://ualzjptcwxxstkbjvqcf.supabase.co', process.env.NEXT_PUBLIC_API_URL)
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [cryptosArray, setCryptosArray] = useState([])
   const [selectedCoins, setSelectedCoins] = useState([])
-
-  // const getCoinData = () => {
-  //   axios.get('https://api.coingecko.com/api/v3/coins/${selectedCoin}')
-  //   .then((res) => console.log({res}))
-  //   .catch((e) => console.log(e))
-  // }
+  const [isSearching, setIsSearching] = useState(false)
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const markCoinAsFav = (coin) => {
     setSelectedCoins((prevCoins) => {
       setSearchTerm('')
-      if (!prevCoins.includes(coin)) {
+      if (!prevCoins.some(c => c.id === coin.id)) {
         return [...prevCoins, coin]
       } else {
         return prevCoins
@@ -31,8 +28,33 @@ export default function Home() {
     })
   }
 
+  const searchCrypto = async (s) => {
+    const { data, error } = await supabase
+      .from('cryptos')
+      .select('name, id')
+      .like('name', `%${searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1)}%`)
+
+    return data
+  }
+
+  useEffect(
+    () => {
+      if (debouncedSearchTerm) {
+        setIsSearching(true)
+        searchCrypto(debouncedSearchTerm).then((results) => {
+          setIsSearching(false)
+          setCryptosArray(results)
+        });
+      } else {
+        setCryptosArray([])
+        setIsSearching(false)
+      }
+    },
+    [debouncedSearchTerm]
+  )
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-20 bg-white">
+    <div className="flex min-h-screen flex-col items-center justify-center pt-20 bg-white">
       <Head>
         <title>My Cryptos</title>
         <link rel="icon" href="/favicon.ico" />
@@ -47,17 +69,34 @@ export default function Home() {
                 </path>
               </svg>
             </div>
-            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} className="w-full focus:outline-none text-white text-2xl bg-transparent" type="text" name="cryptos" />
+            <input
+              value={searchTerm}
+              placeholder="Search..."
+              onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+              className="w-full focus:outline-none text-white text-2xl bg-transparent"
+              type="text"
+              name="cryptos"
+            />
+            {isSearching && <LoadingIcons.Oval className="h-6 mr-2" />}
             <button onClick={() => setSearchTerm('')} className="p-2 text-gray-600">clear</button>
           </div>
-          {searchTerm.length > 1 && <div className="absolute z-[9999] rounded-xl w-full p-6 bg-[#1D1E1F]">
-            {cryptosArray.filter(c => c.toLowerCase().includes(searchTerm))
-              .slice(0, 10)
-              .map((val, key) => {
+
+          {cryptosArray.length > 1 && <div className="absolute z-[9999] overflow-auto rounded-xl w-full h-72 p-6 bg-[#1D1E1F]">
+            {cryptosArray.map((val, key) => {
                 return (
-                  <button onClick={() => markCoinAsFav(val)} className="focus:outline-none w-full flex justify-between items-center cursor-pointer p-4 text-left text-white text-2xl hover:rounded-xl hover:bg-[#232526]" key={key}>
-                    {val}
-                    <span className="text-xs text-gray-600">Click to add</span>
+                  <button
+                    onClick={() => markCoinAsFav(val)}
+                    className="focus:outline-none w-full flex justify-between items-center cursor-pointer p-4 text-left text-white text-2xl hover:rounded-xl hover:bg-[#232526]"
+                    key={key}
+                  >
+                    {val.name}
+                    <span className="text-xs text-gray-600">
+                      {selectedCoins.some(coin => coin.id === val.id) ?
+                        <FaStar size={20} />
+                        :
+                        <FaRegStar size={20} />
+                      }
+                    </span>
                   </button>
                 )
               })
@@ -68,15 +107,19 @@ export default function Home() {
         <CryptoContext.Provider value={
           { setSelectedCoins }
         }>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mx-auto w-full py-6 px-4">
-            {selectedCoins && selectedCoins.map((selectedCoin, key) => {
-              return <CryptoChartCard key={key} name={selectedCoin} />
-            })}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 py-6 px-4">
+            {selectedCoins && selectedCoins.map((selectedCoin, key) =>
+              <CryptoChartCard
+                key={key}
+                id={selectedCoin.id}
+                name={selectedCoin.name.toLowerCase()}
+              />
+            )}
           </div>
         </CryptoContext.Provider>
       </main>
 
-      <footer className="flex h-24 w-full items-center justify-center border-t">
+      <footer className="flex py-4 w-full items-center justify-center text-sm">
         <a
           className="flex items-center justify-center"
           href="https://carlosknopel.dev"
