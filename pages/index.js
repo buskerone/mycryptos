@@ -60,7 +60,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex w-full flex-1 flex-col items-center justify-start px-20 text-center">
+      <main className="flex w-full flex-1 flex-col items-center justify-start px-10 text-center">
         <div className="relative max-w-2xl mx-auto w-full">
           <div className="flex items-center mb-4 rounded-xl w-full p-6 bg-[#1D1E1F]">
             <div className="flex items-center justify-center px-4">
