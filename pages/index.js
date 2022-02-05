@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { FiHeart } from 'react-icons/fi'
 import { FaStar, FaRegStar } from 'react-icons/fa'
 import Head from 'next/head'
+import Lottie from 'react-lottie-player'
 import CryptoChartCard from '../components/CryptoChartCard'
 import useDebounce from '../hooks/useDebounce'
 import { createClient } from '@supabase/supabase-js'
 import CryptoContext from '../context/CryptoContext'
 import LoadingIcons from 'react-loading-icons'
+import cx from 'classnames'
+import LottieAnimation from '../assets/cryptos-animation.json'
 
 const supabase = createClient('https://ualzjptcwxxstkbjvqcf.supabase.co', process.env.NEXT_PUBLIC_API_URL)
 
@@ -81,7 +84,7 @@ export default function Home() {
             <button onClick={() => setSearchTerm('')} className="p-2 text-gray-600">clear</button>
           </div>
 
-          {cryptosArray.length > 1 && <div className="absolute z-[9999] overflow-auto rounded-xl w-full h-72 p-6 bg-[#1D1E1F]">
+          {(cryptosArray.length > 1 && searchTerm !== '') && <div className="absolute z-[9999] overflow-auto rounded-xl w-full h-72 p-6 bg-[#1D1E1F]">
             {cryptosArray.map((val, key) => {
                 return (
                   <button
@@ -107,13 +110,23 @@ export default function Home() {
         <CryptoContext.Provider value={
           { setSelectedCoins }
         }>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 py-6 px-4">
-            {selectedCoins && selectedCoins.map((selectedCoin, key) =>
+          <div className={cx("py-6 px-4",
+            {
+              "grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4": selectedCoins.length > 0,
+              "flex justify-center items-center h-96": selectedCoins.length === 0
+            }
+          )}>
+            {selectedCoins.length > 0 ? selectedCoins.map((selectedCoin, key) =>
               <CryptoChartCard
                 key={key}
                 id={selectedCoin.id}
                 name={selectedCoin.name.toLowerCase()}
               />
+            ): (
+              <div className="flex flex-col justify-center items-center">
+                <Lottie className="h-24 w-24" loop play animationData={LottieAnimation} />
+                <span className="w-2/3 mt-3 text-sm text-gray-700">No cryptos here... Use the searchbar to find a crypto and mark it as favorite</span>
+              </div>
             )}
           </div>
         </CryptoContext.Provider>
