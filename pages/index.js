@@ -125,7 +125,7 @@ export default function Home() {
             ): (
               <div className="flex flex-col justify-center items-center">
                 <Lottie className="h-24 w-24" loop play animationData={LottieAnimation} />
-                <span className="w-2/3 mt-3 text-sm text-gray-700">No cryptos here... Use the searchbar to find a crypto and mark it as favorite</span>
+                <span className="w-2/3 mt-3 text-sm text-gray-700">No cryptos here... Use the search bar to find a crypto and mark it as favorite</span>
               </div>
             )}
           </div>

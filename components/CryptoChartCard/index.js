@@ -79,7 +79,7 @@ const CryptoChartCard = ({ id, name }) => {
 
   useLayoutEffect(() => {
     getCoinData()
-  }, [])
+  }, [id])
 
   return (
     <div className="group relative max-w-4xl mx-auto antialiased">
