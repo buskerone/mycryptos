@@ -1,4 +1,4 @@
-import { useContext, useLayoutEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { FiX } from 'react-icons/fi'
 import Highcharts from 'highcharts'
@@ -77,7 +77,7 @@ const CryptoChartCard = ({ id, name }) => {
     })
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     getCoinData()
   }, [id])
 

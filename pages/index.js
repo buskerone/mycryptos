@@ -16,7 +16,20 @@ const supabase = createClient('https://ualzjptcwxxstkbjvqcf.supabase.co', proces
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [cryptosArray, setCryptosArray] = useState([])
-  const [selectedCoins, setSelectedCoins] = useState([])
+  const [selectedCoins, setSelectedCoins] = useState([
+    {
+      id: 'BTC',
+      name: 'Bitcoin'
+    },
+    {
+      id: 'ETH',
+      name: 'Ethereum'
+    },
+    {
+      id: 'XMR',
+      name: 'Monero'
+    }
+  ])
   const [isSearching, setIsSearching] = useState(false)
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
