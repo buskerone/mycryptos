@@ -60,7 +60,10 @@ export default function Home() {
         searchCrypto(debouncedSearchTerm).then((results) => {
           setIsSearching(false)
           setCryptosArray(results)
-        });
+        }).catch(e => {
+          setCryptosArray([])
+          setIsSearching(false)
+        })
       } else {
         setCryptosArray([])
         setIsSearching(false)
@@ -97,7 +100,7 @@ export default function Home() {
             <button onClick={() => setSearchTerm('')} className="p-2 text-gray-600">clear</button>
           </div>
 
-          {(cryptosArray.length > 1 && searchTerm !== '') && <div className="absolute z-[9999] overflow-auto rounded-xl w-full h-72 p-6 bg-[#1D1E1F]">
+          {(cryptosArray && cryptosArray.length > 1 && searchTerm !== '') && <div className="absolute z-[9999] overflow-auto rounded-xl w-full h-72 p-6 bg-[#1D1E1F]">
             {cryptosArray.map((val, key) => {
                 return (
                   <button
