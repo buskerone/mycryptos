@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import useSWR from 'swr'
 import axios from 'axios'
 import { FiX } from 'react-icons/fi'
 import Highcharts from 'highcharts'
@@ -10,6 +11,9 @@ const formatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD'
 })
+
+const fetchCoinData = (url) => 
+  axios.get(url).then(res => res.data)
 
 const CryptoChartCard = ({ id, name }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -59,27 +63,24 @@ const CryptoChartCard = ({ id, name }) => {
   })
   const { setSelectedCoins } = useContext(CryptoContext)
 
-  const getCoinData = () => {
-    setIsLoading(true)
-
-    const marketData = axios.get(`https://api.coingecko.com/api/v3/coins/${name}`)
-    const chartData = axios.get(`https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1`)
-
-    axios.all([marketData, chartData]).then(axios.spread((marketDataResponse, chartDataResponse) => {
-      setCoinData(marketDataResponse.data.market_data)
-      setOptions((prevOptions) => {
-        return { ...prevOptions, series: [{ data: chartDataResponse.data.prices }] }
-      })
-      setIsLoading(false)
-    })).catch(e => {
-      setIsLoading(false)
-      console.log(e)
-    })
-  }
+  const {
+    data: marketData,
+    error: errorMarketData,
+    isValidating: isValidatingMarketData
+  } = useSWR(`https://api.coingecko.com/api/v3/coins/${name}`, fetchCoinData)
+  const {
+    data: chartData,
+    error: errorChartData,
+    isValidating: isValidatingChartData
+  } = useSWR(`https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=1`, fetchCoinData)
 
   useEffect(() => {
-    getCoinData()
-  }, [id])
+    if (chartData) {
+      setOptions((prevOptions) => {
+        return { ...prevOptions, series: [{ data: chartData.prices }] }
+      })
+    }
+  }, [chartData])
 
   return (
     <div className="group relative max-w-4xl mx-auto antialiased">
@@ -93,16 +94,16 @@ const CryptoChartCard = ({ id, name }) => {
       <div className="flex items-center justify-center">
         <div className="flex max-w-sm w-full sm:w-full lg:w-full py-6 px-3">
           <div className="h-72 w-72 px-6 py-6 text-white bg-[#1D1E1F] text-left shadow-lg shadow-[#040807] rounded-lg overflow-hidden">
-            {isLoading ?
+            {(isValidatingMarketData || isValidatingChartData ) ?
               <div className="flex justify-center items-center w-full h-full">
                 <LoadingIcons.Oval className="h-16" />
               </div>
               :
               <h2 className="ml-2 text-2xl font-semibold capitalize">{name}</h2>
             }
-            {coinData ? (
+            {marketData ? (
               <>
-                <h3 className="text-lg ml-2 mb-2 font-semibold">{formatter.format(coinData.current_price.usd)}</h3>
+                <h3 className="text-lg ml-2 mb-2 font-semibold">{formatter.format(marketData.market_data.current_price.usd)}</h3>
                 <HighchartsReact
                   highcharts={Highcharts}
                   options={options} />
